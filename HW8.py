@@ -40,10 +40,12 @@ def plot_rest_categories(db):
     restaurant categories and the values should be the number of restaurants in each category. The function should
     also create a bar chart with restaurant categories and the count of number of restaurants in each category.
     """
-    # Create dictionary of category counts
+
+    dbc = load_rest_data(db)
     category_counts = {}
-    for restaurant in db:
-        category = db[restaurant]['category']
+
+    for restaurant in dbc:
+        category = dbc[restaurant]['category']
         category_counts[category] = category_counts.get(category, 0) + 1
 
     # Create bar chart
@@ -69,6 +71,7 @@ def plot_rest_categories(db):
                     ha='center', va='bottom', color='white')
 
     plt.show()
+    return category_counts
     pass
 
 def find_rest_in_building(building_num, db):
@@ -77,6 +80,19 @@ def find_rest_in_building(building_num, db):
     restaurant names. You need to find all the restaurant names which are in the specific building. The restaurants 
     should be sorted by their rating from highest to lowest.
     '''
+    dbc = load_rest_data(db)
+    restaurant_names = []
+
+    # Loop through each restaurant in the database
+    for restaurant, values in dbc.items():
+        # Check if the restaurant is in the specified building and add it to the list if it is
+        if values['building'] == building_num:
+            restaurant_names.append(restaurant)
+
+    # Sort the list of restaurant names by their rating from highest to lowest
+    restaurant_names.sort(key=lambda x: dbc[x]['rating'], reverse=True)
+
+    return restaurant_names
     pass
 
 #EXTRA CREDIT
@@ -97,7 +113,10 @@ def get_highest_rating(db): #Do this through DB as well
 def main():
     restaurant_data = load_rest_data("South_U_Restaurants.db")
     print(restaurant_data)
-    category_counts = plot_rest_categories(restaurant_data)
+    category_counts = plot_rest_categories("South_U_Restaurants.db")
+    building_num = '1101'
+    restaurant_list = find_rest_in_building(building_num, "South_U_Restaurants.db")
+    print(f"Restaurants in building {building_num}: {restaurant_list}")
 
     pass
 
@@ -138,11 +157,11 @@ class TestHW8(unittest.TestCase):
         self.assertEqual(cat_data, self.cat_dict)
         self.assertEqual(len(cat_data), 14)
 
-    # def test_find_rest_in_building(self):
-    #     restaurant_list = find_rest_in_building(1140, 'South_U_Restaurants.db')
-    #     self.assertIsInstance(restaurant_list, list)
-    #     self.assertEqual(len(restaurant_list), 3)
-    #     self.assertEqual(restaurant_list[0], 'BTB Burrito')
+    def test_find_rest_in_building(self):
+        restaurant_list = find_rest_in_building(1140, 'South_U_Restaurants.db')
+        self.assertIsInstance(restaurant_list, list)
+        self.assertEqual(len(restaurant_list), 3)
+        self.assertEqual(restaurant_list[0], 'BTB Burrito')
 
     # def test_get_highest_rating(self):
     #     highest_rating = get_highest_rating('South_U_Restaurants.db')
