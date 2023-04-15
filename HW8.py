@@ -107,6 +107,71 @@ def get_highest_rating(db): #Do this through DB as well
     The second bar chart displays the buildings along the y-axis and their ratings along the x-axis 
     in descending order (by rating).
     """
+    dbc = load_rest_data(db)
+    category_ratings = {}
+    for restaurant, vals in dbc.items():
+        category = vals['category']
+        rating = vals['rating']
+        if category not in category_ratings:
+            category_ratings[category] = []
+        category_ratings[category].append(rating)
+    
+    avg_category_ratings = {}
+    for category, ratings in category_ratings.items():
+        avg_rating = sum(ratings) / len(ratings)
+        avg_category_ratings[category] = avg_rating
+    
+    # Find category with highest average rating
+    highest_rating_category = max(avg_category_ratings, key=avg_category_ratings.get)
+    highest_rating_category_avg = avg_category_ratings[highest_rating_category]
+    
+    # Calculate average rating for each building
+    building_ratings = {}
+    for restaurant, vals in dbc.items():
+        building = vals['building']
+        rating = vals['rating']
+        if building not in building_ratings:
+            building_ratings[building] = []
+        building_ratings[building].append(rating)
+    
+    avg_building_ratings = {}
+    for building, ratings in building_ratings.items():
+        avg_rating = sum(ratings) / len(ratings)
+        avg_building_ratings[building] = avg_rating
+    
+    # Find building with highest average rating
+    highest_rating_building = max(avg_building_ratings, key=avg_building_ratings.get)
+    highest_rating_building_avg = avg_building_ratings[highest_rating_building]
+    
+    # Sort categories and buildings by rating
+    sorted_categories = sorted(avg_category_ratings.items(), key=lambda x: x[1], reverse=True)
+    sorted_buildings = sorted(avg_building_ratings.items(), key=lambda x: x[1], reverse=True)
+    
+    # Create bar charts
+    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(12,6))
+    
+    # Category bar chart
+    category_labels = [x[0] for x in sorted_categories]
+    category_ratings = [x[1] for x in sorted_categories]
+    category_colors = ['hotpink' if i % 2 == 0 else 'yellow' for i in range(len(sorted_categories))]
+    ax[0].barh(category_labels, category_ratings, color=category_colors)
+    ax[0].set_xlabel('Average Rating')
+    ax[0].set_ylabel('Category')
+    ax[0].set_title('Average Ratings by Category')
+    
+    # Building bar chart
+    building_labels = [x[0] for x in sorted_buildings]
+    building_ratings = [x[1] for x in sorted_buildings]
+    building_colors = ['hotpink' if i % 2 == 0 else 'yellow' for i in range(len(sorted_buildings))]
+    ax[1].barh(building_labels, building_ratings, color=building_colors)
+    ax[1].set_xlabel('Average Rating')
+    ax[1].set_ylabel('Building')
+    ax[1].set_title('Average Ratings by Building')
+    
+    plt.tight_layout()
+    plt.show()
+    
+    return [(highest_rating_category, highest_rating_category_avg), (highest_rating_building, highest_rating_building_avg)]
     pass
 
 #Try calling your functions here
@@ -117,6 +182,8 @@ def main():
     building_num = '1101'
     restaurant_list = find_rest_in_building(building_num, "South_U_Restaurants.db")
     print(f"Restaurants in building {building_num}: {restaurant_list}")
+    category_and_building = get_highest_rating("South_U_Restaurants.db")
+    print(category_and_building)
 
     pass
 
